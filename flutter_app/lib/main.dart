@@ -1,111 +1,256 @@
+import 'dart:async';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
-void main() => runApp(MyApp());
+void main() => runApp(new MaterialApp(
+  title: "Currency Converter",
+  home: CurrencyConverter(),
+));
 
-class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
+class CurrencyConverter extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
-      ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
-    );
+  _CurrencyConverterState createState() => _CurrencyConverterState();
+}
+
+class _CurrencyConverterState extends State<CurrencyConverter> {
+  final fromTextController = TextEditingController();
+  List<String> currencies=new List();
+  String fromCurrency = "EUR";
+  // var toCurrency = [ "SPGP"] ;
+  String toCurrency = 'CHF';
+
+  List<String> convertedlist=new List();
+
+
+  String result;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCurrencies();
   }
-}
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
 
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
+  Future<String> _loadCurrencies() async {
+    String uri = "https://api.exchangeratesapi.io/latest";
+    var response = await http
+        .get(Uri.encodeFull(uri), headers: {"Accept": "application/json"});
+    var responseBody = json.decode(response.body);
+    Map curMap = responseBody['rates'];
+    currencies = curMap.keys.toList();
+    setState(() {});
+    print(currencies);
+    return "Success";
+  }
 
-  final String title;
+  Future<String> _doConversion() async {
 
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
+    if(currencies.length>0)
+    {
+      for(int i=0;i<currencies.length;i++)
+      {
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+        Future.delayed(const Duration(milliseconds: 500), () async{
 
-  void _incrementCounter() {
+          var tmp=  currencies[i];
+          print(tmp+ "abc");
+          String uri =
+              "https://api.exchangeratesapi.io/latest?base=$fromCurrency&symbols=$tmp";
+          var response = await http
+              .get(Uri.encodeFull(uri), headers: {"Accept": "application/json"});
+          var responseBody = json.decode(response.body);
+          setState(() {
+            result = (double.parse(fromTextController.text) *
+                (responseBody["rates"][tmp]))
+                .toString();
+
+
+          });
+          //   print(result);
+
+          convertedlist.add(result);
+          setState(() {
+
+          });
+
+          print(convertedlist);
+        });
+
+      }
+
+    }
+
+
+    return "Success";
+  }
+
+  _handleRefresh()  {
+    result = " ";
+
+  }
+
+
+  _onFromChanged(String value) {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      fromCurrency = value;
     });
   }
 
+
+
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
+      backgroundColor: Colors.black12,
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
+        backgroundColor: Colors.teal,
+        title: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text(
-              'You have pushed the button this many times:',
+                'Currency Converter',style: new TextStyle(
+              fontSize: 25.0,)
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.display1,
+            Visibility(
+              visible: true,
+              child: Text(
+                _getDate(),
+                style: TextStyle(
+                  fontSize: 12.0,
+                ),
+              ),
             ),
           ],
         ),
+        actions: <Widget>[
+          Padding(
+            padding: EdgeInsets.only(right: 20.0),
+            child:
+            new IconButton(icon: new Icon(Icons.refresh), onPressed:() {
+
+
+
+            }),
+
+          ),
+
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
-    );
+      /* appBar: AppBar(
+        title:  Text(_getDate(), style: new TextStyle(
+    fontSize: 15.0,),
+
+
+      ),),*/
+      body: currencies == null
+          ? Center(child: CircularProgressIndicator())
+          : Container(
+        height: MediaQuery.of(context).size.height ,
+        width: MediaQuery.of(context).size.width,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Card(
+
+            elevation: 3.0,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: <Widget>[
+                ListTile(
+                  title: TextField(
+                    controller: fromTextController,
+                    style: TextStyle(fontSize: 20.0, color: Colors.black),
+                    keyboardType:
+                    TextInputType.numberWithOptions(decimal: true),
+                  ),
+                  trailing: Text(fromCurrency),
+                ),
+                FlatButton(
+                  color: Colors.teal,
+                  textColor: Colors.white,
+                  disabledColor: Colors.grey,
+                  disabledTextColor: Colors.black,
+                  padding: EdgeInsets.all(8.0),
+                  splashColor: Colors.transparent,
+                  onPressed: () {
+                    _doConversion();
+                  },
+                  child: Text(
+                    "Convert",
+                    style: TextStyle(fontSize: 20.0),
+                  ),
+                ),
+
+
+                convertedlist.length>0? new ListView.builder
+                  (
+                    itemCount: convertedlist.length,
+                    shrinkWrap: true,
+                    itemBuilder: (BuildContext ctxt, int index) {
+                      return Row(
+                        children: <Widget>[
+                          Text(
+                              currencies[index]
+                          ),
+                          Text(
+                              ":="
+                          ),
+                          Text(
+                              convertedlist[index]
+                          )
+                        ],
+                      );
+                      //  return new Text(convertedlist[index]);
+
+                    }
+                ):Text(
+                    " "
+                )
+
+
+                /*   ListTile(
+                          title: Chip(
+                            label: result != null
+                                ? Text(
+                                    result,
+                                    style: Theme.of(context).textTheme.display1,
+                                  )
+                                : Text(" "),
+                          ),
+                          trailing:
+
+                              Text("$toCurrency")
+
+                      ),*/
+
+              ],
+            ),
+          ),
+        ),
+      ),
+    )   ;
   }
+
+
+
+
+  String _getDate() {
+    DateTime now = new DateTime.now();
+    var dateFormatter = new DateFormat('MMMM dd, yyyy');
+
+    return dateFormatter.format(now);
+  }
+
+  void _refresh() {
+    super.dispose();
+    _doConversion(
+    );
+
+  }
+
+
 }
+
