@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 void main() => runApp(new MaterialApp(
+  debugShowCheckedModeBanner: false,
   title: "Currency Converter",
   home: CurrencyConverter(),
 ));
@@ -131,7 +132,8 @@ class _CurrencyConverterState extends State<CurrencyConverter> {
             padding: EdgeInsets.only(right: 20.0),
             child:
             new IconButton(icon: new Icon(Icons.refresh), onPressed:() {
-
+              fromTextController.clear();
+              convertedlist.clear();
 
 
             }),
@@ -161,12 +163,16 @@ class _CurrencyConverterState extends State<CurrencyConverter> {
               children: <Widget>[
                 ListTile(
                   title: TextField(
+
                     controller: fromTextController,
-                    style: TextStyle(fontSize: 20.0, color: Colors.black),
+                    style: TextStyle(fontSize: 20.0, color: Colors.black,fontWeight: FontWeight.bold ),
                     keyboardType:
+
                     TextInputType.numberWithOptions(decimal: true),
                   ),
-                  trailing: Text(fromCurrency),
+                  trailing: Text(fromCurrency,
+                    style: TextStyle(fontSize: 25.0, color: Colors.black,fontWeight: FontWeight.bold ),
+                  ),
                 ),
                 FlatButton(
                   color: Colors.teal,
@@ -183,15 +189,18 @@ class _CurrencyConverterState extends State<CurrencyConverter> {
                     style: TextStyle(fontSize: 20.0),
                   ),
                 ),
-
+Divider(),
 
                 convertedlist.length>0? new ListView.builder
                   (
                     itemCount: convertedlist.length,
                     shrinkWrap: true,
                     itemBuilder: (BuildContext ctxt, int index) {
-                      return Row(
+                      return
+
+                        Row(
                         children: <Widget>[
+                          Spacer(),
                           Text(
                               currencies[index]
                           ),
@@ -200,14 +209,15 @@ class _CurrencyConverterState extends State<CurrencyConverter> {
                           ),
                           Text(
                               convertedlist[index]
-                          )
+                          ),
+                          Spacer()
                         ],
-                      );
+                        );
                       //  return new Text(convertedlist[index]);
 
                     }
                 ):Text(
-                    " "
+                    " Loading....."
                 )
 
 
